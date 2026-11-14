@@ -374,6 +374,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     await async_setup_queue_sensors(coordinator, entry, async_add_entities)
     await async_setup_spoolman_sensors(coordinator, entry, async_add_entities)
     await async_setup_u1_sensors(coordinator, entry, async_add_entities)
+    await async_setup_qidi_sensors(coordinator, entry, async_add_entities)
 
 
 async def _machine_system_info_updater(coordinator):
@@ -451,6 +452,7 @@ async def async_setup_optional_sensors(coordinator, entry, async_add_entities):
         "aht10",
         "aht20_f",
         "sht3x",
+        "heater_generic",
     ]
     environmental_keys = [
         "bme280",
@@ -768,6 +770,77 @@ async def async_setup_optional_sensors(coordinator, entry, async_add_entities):
                 suggested_display_precision=0,
             )
             sensors.append(desc)
+
+    coordinator.load_sensor_data(sensors)
+    await coordinator.async_refresh()
+    async_add_entities([MoonrakerSensor(coordinator, entry, desc) for desc in sensors])
+
+
+def _qidi_filament_info(sensor) -> dict:
+    """Resolve metadata for the currently loaded Qidi Box filament.
+
+    slot<N> maps to box N//4, sub-slot N%4; slot16/vt_tray is the external
+    spool. Verified against live Qidi firmware responses.
+    """
+    mc = sensor.coordinator.data.get("status", {}).get("multi_color_controller", {})
+    box = mc.get("box", {})
+    slot = box.get("loaded_slot", "")
+    if slot in ("slot16", "vt_tray"):
+        return mc.get("extra", {}).get("filament_info", {})
+    try:
+        n = int(slot[4:])
+    except ValueError:
+        return {}
+    return box.get(f"box{n // 4}_filament_info_{n % 4}", {})
+
+
+async def async_setup_qidi_sensors(coordinator, entry, async_add_entities):
+    """Set Qidi Box multicolor sensor platform (only when the object exists)."""
+    object_list = await coordinator.async_fetch_data(METHODS.PRINTER_OBJECTS_LIST)
+    if "multi_color_controller" not in object_list.get("objects", []):
+        return
+
+    sensors = [
+        MoonrakerSensorDescription(
+            key="qidi_loaded_slot",
+            status_key="multi_color_controller",
+            name="Loaded Slot",
+            value_fn=lambda sensor: (
+                sensor.coordinator.data.get("status", {})
+                .get("multi_color_controller", {})
+                .get("box", {})
+                .get("loaded_slot")
+            ),
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:creation",
+        ),
+        MoonrakerSensorDescription(
+            key="qidi_active_filament",
+            status_key="multi_color_controller",
+            name="Active Filament",
+            value_fn=lambda sensor: _qidi_filament_info(sensor).get("filament_str"),
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:palette",
+        ),
+        MoonrakerSensorDescription(
+            key="qidi_active_filament_type",
+            status_key="multi_color_controller",
+            name="Active Filament Type",
+            value_fn=lambda sensor: _qidi_filament_info(sensor).get("filament_type"),
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:sphere",
+        ),
+        MoonrakerSensorDescription(
+            key="qidi_active_filament_color",
+            status_key="multi_color_controller",
+            name="Active Filament Color",
+            value_fn=lambda sensor: (
+                _qidi_filament_info(sensor).get("color_rgb_str", [""])[0] or None
+            ),
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:palette-alias",
+        ),
+    ]
 
     coordinator.load_sensor_data(sensors)
     await coordinator.async_refresh()

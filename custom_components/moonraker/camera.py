@@ -114,6 +114,12 @@ def _is_mjpeg_camera(camera) -> bool:
     return service is None or service in MJPEG_SERVICES
 
 
+def _conf_host(config_entry) -> str:
+    """Return the configured host without any port (Qidi web UI lives on
+    port 80; CONF_URL persisted as host:port would break camera URLs)."""
+    return str(config_entry.data.get(CONF_URL, "")).partition(":")[0]
+
+
 def _camera_url(config_entry, path) -> str:
     """Return the full URL of a webcam path."""
     if path.startswith("http"):
@@ -122,7 +128,7 @@ def _camera_url(config_entry, path) -> str:
     if port is None or port == "":
         port = DEFAULT_PORT
     scheme = "https" if config_entry.data.get(CONF_TLS) else "http"
-    return f"{scheme}://{config_entry.data.get(CONF_URL)}:{port}{path}"
+    return f"{scheme}://{_conf_host(config_entry)}:{port}{path}"
 
 
 class MoonrakerCamera(MjpegCamera):
@@ -145,7 +151,7 @@ class MoonrakerCamera(MjpegCamera):
         if camera["stream_url"].startswith("http"):
             self.url = ""
         else:
-            self.url = f"http://{config_entry.data.get(CONF_URL)}:{self.port}"
+            self.url = f"http://{_conf_host(config_entry)}:{self.port}"
 
         _LOGGER.info(f"Connecting to camera: {self.url}{camera['stream_url']}")
 
@@ -214,7 +220,7 @@ class PreviewCamera(Camera):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, config_entry.entry_id)}
         )
-        self.url = config_entry.data.get(CONF_URL)
+        self.url = _conf_host(config_entry)
         self._scheme = "https" if config_entry.data.get(CONF_TLS) else "http"
         api_key = config_entry.data.get(CONF_API_KEY)
         self._headers = {"X-Api-Key": api_key} if api_key else None

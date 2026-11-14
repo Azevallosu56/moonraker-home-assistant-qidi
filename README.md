@@ -1,3 +1,15 @@
+# Moonraker Qidi (fork)
+
+Qidi-flavored fork of [marcolivierarsenault/moonraker-home-assistant](https://github.com/marcolivierarsenault/moonraker-home-assistant), verified against a live QIDI Max 4. Adds:
+
+1. **Chamber heater** — `heater_generic` added to the temperature scan (`heater_generic chamber` was invisible in upstream).
+2. **QIDI Box multicolor entities** — only when `multi_color_controller` exists in the Klipper object registry: `Loaded Slot`, `Active Filament`, `Active Filament Type`, `Active Filament Color`, plus `Box Online` / `Box Drying` binary sensors. Slot resolver: `slot<N>` → box `N//4`, sub-slot `N%4`; `slot16`/`vt_tray` = external spool.
+3. **Camera host normalization** — camera/thumbnail URLs built from the host without the Moonraker port (QIDI's nginx on port 80 serves Moonraker routes AND `/webcam/`; port 7125 404s them).
+
+Install via HACS custom repository: `Azevallosu56/moonraker-home-assistant-qidi` (category Integration), download, restart HA, then add the integration with the printer host — do not append `:7125`.
+
+---
+
 [![codecov](https://codecov.io/github/marcolivierarsenault/moonraker-home-assistant/branch/main/graph/badge.svg?token=OT5PZG1QZE)](https://app.codecov.io/github/marcolivierarsenault/moonraker-home-assistant)
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://github.com/hacs/integration)
 ![install_badge](https://img.shields.io/badge/dynamic/json?color=41BDF5&logo=home-assistant&label=integration%20usage&suffix=%20installs&cacheSeconds=15600&url=https://analytics.home-assistant.io/custom_integrations.json&query=$.moonraker.total)

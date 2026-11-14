@@ -29,6 +29,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
 
     await async_setup_optional_binary_sensors(coordinator, entry, async_add_devices)
     await async_setup_update_binary_sensors(coordinator, entry, async_add_devices)
+    await async_setup_qidi_binary_sensors(coordinator, entry, async_add_devices)
 
 
 async def async_setup_optional_binary_sensors(coordinator, entry, async_add_entities):
@@ -98,6 +99,43 @@ async def async_setup_update_binary_sensors(coordinator, entry, async_add_entiti
     coordinator.load_sensor_data([desc])
     await coordinator.async_refresh()
     async_add_entities([MoonrakerBinarySensor(coordinator, entry, desc)])
+
+
+async def async_setup_qidi_binary_sensors(coordinator, entry, async_add_devices):
+    """Set Qidi Box binary platform (only when the object exists)."""
+    object_list = await coordinator.async_fetch_data(METHODS.PRINTER_OBJECTS_LIST)
+    if "multi_color_controller" not in object_list.get("objects", []):
+        return
+
+    def _qidi_box(sensor):
+        return (
+            sensor.coordinator.data.get("status", {})
+            .get("multi_color_controller", {})
+            .get("box", {})
+        )
+
+    descs = [
+        MoonrakerBinarySensorDescription(
+            key="qidi_box_online",
+            sensor_name="multi_color_controller",
+            is_on_fn=lambda sensor: _qidi_box(sensor).get("box0_is_online") == 1,
+            name="Box Online",
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:creation",
+        ),
+        MoonrakerBinarySensorDescription(
+            key="qidi_box_drying",
+            sensor_name="multi_color_controller",
+            is_on_fn=lambda sensor: _qidi_box(sensor).get("box0_dry_state") == 1,
+            name="Box Drying",
+            subscriptions=[("multi_color_controller", None)],
+            icon="mdi:fire",
+        ),
+    ]
+
+    coordinator.load_sensor_data(descs)
+    await coordinator.async_refresh()
+    async_add_entities([MoonrakerBinarySensor(coordinator, entry, desc) for desc in descs])
 
 
 def update_available_fn(sensor):
