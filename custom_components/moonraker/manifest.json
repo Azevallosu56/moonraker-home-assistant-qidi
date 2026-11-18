@@ -1,12 +1,28 @@
 {
   "domain": "moonraker",
   "name": "Moonraker",
-  "codeowners": ["@marcolivierarsenault", "@cashew22"],
+  "codeowners": [
+    "@marcolivierarsenault",
+    "@cashew22"
+  ],
   "config_flow": true,
   "documentation": "https://moonraker-home-assistant.readthedocs.io/en/latest/",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/marcolivierarsenault/moonraker-home-assistant/issues",
-  "loggers": ["moonraker_api"],
-  "requirements": ["moonraker-api==4.0.0"],
-  "version": "1.14.0"
+  "loggers": [
+    "moonraker_api"
+  ],
+  "requirements": [
+    "moonraker-api==4.0.0"
+  ],
+  "version": "1.14.0",
+  "categories": [
+    "sensor",
+    "binary_sensor",
+    "button",
+    "camera",
+    "light",
+    "number",
+    "switch"
+  ]
 }
