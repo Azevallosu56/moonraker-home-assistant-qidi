@@ -115,8 +115,11 @@ def _is_mjpeg_camera(camera) -> bool:
 
 
 def _conf_host(config_entry) -> str:
-    """Return the configured host without any port (Qidi web UI lives on
-    port 80; CONF_URL persisted as host:port would break camera URLs)."""
+    """Return the configured host without any port.
+
+    The Qidi web UI lives on port 80; a CONF_URL persisted as host:port
+    would break camera URLs.
+    """
     return str(config_entry.data.get(CONF_URL, "")).partition(":")[0]
 
 
