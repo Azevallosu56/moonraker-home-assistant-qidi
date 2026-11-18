@@ -452,7 +452,6 @@ async def async_setup_optional_sensors(coordinator, entry, async_add_entities):
         "aht10",
         "aht20_f",
         "sht3x",
-        "heater_generic",
     ]
     environmental_keys = [
         "bme280",
