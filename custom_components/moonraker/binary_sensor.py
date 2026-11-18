@@ -135,7 +135,7 @@ async def async_setup_qidi_binary_sensors(coordinator, entry, async_add_devices)
 
     coordinator.load_sensor_data(descs)
     await coordinator.async_refresh()
-    async_add_entities([MoonrakerBinarySensor(coordinator, entry, desc) for desc in descs])
+    async_add_devices([MoonrakerBinarySensor(coordinator, entry, desc) for desc in descs])
 
 
 def update_available_fn(sensor):
