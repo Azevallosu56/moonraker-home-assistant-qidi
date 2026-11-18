@@ -44,6 +44,8 @@ from .const import (
 )
 from .sensor import SENSORS
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 # How long send_gcode with wait: false waits for the printer to reject a script
 GCODE_REJECT_WINDOW = 5
 
