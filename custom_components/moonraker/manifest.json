@@ -17,12 +17,7 @@
   ],
   "version": "1.14.0",
   "categories": [
-    "sensor",
-    "binary_sensor",
-    "button",
-    "camera",
-    "light",
-    "number",
-    "switch"
+    "computers_network.printers",
+    "sensors.temperature_humidity"
   ]
 }
